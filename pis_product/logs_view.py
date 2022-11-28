@@ -106,9 +106,9 @@ class MonthlyStockLogs(ListView):
         if self.logs_month:
             self.year = current_date.year
             month = self.logs_month
-
-            if month < months.index(self.logs_month) + 1:
-                self.year = self.year - 1
+            # print(month, months.index(self.logs_month) + 1, self.year)
+            # if month < months.index(self.logs_month) + 1:
+            #     self.year = self.year - 1
 
             queryset = StockOut.objects.filter(
                 dated__year=self.year,

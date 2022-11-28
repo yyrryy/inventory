@@ -8,27 +8,14 @@ from pis_com.models import DatedModel
 
 
 class Product(models.Model):
-    UNIT_TYPE_KG = 'Kilogram'
-    UNIT_TYPE_GRAM = 'Gram'
-    UNIT_TYPE_LITRE = 'Litre'
-    UNIT_TYPE_QUANTITY = 'Quantity'
 
-    UNIT_TYPES = (
-        (UNIT_TYPE_KG, 'Kilogram'),
-        (UNIT_TYPE_GRAM, 'Gram'),
-        (UNIT_TYPE_LITRE, 'Litre'),
-        (UNIT_TYPE_QUANTITY, 'Quantity'),
-    )
-    unit_type = models.CharField(
-        choices=UNIT_TYPES, default=UNIT_TYPE_QUANTITY,
-        blank=True, null=True, max_length=200
-    )
     name = models.CharField(max_length=100, unique=True)
     brand_name = models.CharField(max_length=200, blank=True, null=True)
     retailer = models.ForeignKey(
         'pis_retailer.Retailer',
         related_name='retailer_product',on_delete=models.CASCADE
     )
+    price=models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     bar_code = models.CharField(max_length=13, unique=True, blank=True,
                                 null=True)
 
@@ -135,24 +122,7 @@ class StockIn(models.Model):
     quantity = models.CharField(
         max_length=100, blank=True, null=True
     )
-    price_per_item = models.DecimalField(
-        max_digits=65, decimal_places=2, default=0, blank=True, null=True,
-        help_text="Selling Price for a Single Item"
-    )
-    total_amount = models.DecimalField(
-        max_digits=65, decimal_places=2, default=0, blank=True, null=True
-    )
-    buying_price_item = models.DecimalField(
-        max_digits=65, decimal_places=2, default=0, blank=True, null=True,
-        help_text='Buying Price for a Single Item'
-    )
-    total_buying_amount = models.DecimalField(
-        max_digits=65, decimal_places=2, default=0, blank=True, null=True
-    )
-
-    dated_order = models.DateField(blank=True, null=True)
-    stock_expiry = models.DateField(blank=True, null=True)
-
+    dated_order = models.DateTimeField(auto_now_add=True)
     def __unicode__(self):
         return self.product.name
 

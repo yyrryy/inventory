@@ -8,7 +8,7 @@
         <a href="{% url 'product:add_product' retailer_id=request.user.retailer_user.retailer.id %}"><button type="button" id="add-product" class="btn btn-primary" id="load" data-loading-text="<i class='fa fa-circle-o-notch fa-spin'></i>Processing">Add Product </button></a>
         <a href="{% url 'product:stock_items_list' %}"><button type="button" id="back-product" class="btn btn-primary" id="load" data-loading-text="<i class='fa fa-circle-o-notch fa-spin'></i>Processing">Product List</button></a>
         <br><br><br>
-        <div class="content-panel">
+        <div class="content-panel p-2">
             <h3 class="text-center">Claimed items</h3>
             <div class="panel-body">
                 <div class="form-group">

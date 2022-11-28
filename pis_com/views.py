@@ -5,7 +5,7 @@ from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
 from django.contrib.auth import authenticate
 from django.views.generic import TemplateView, RedirectView, UpdateView
-from django.views.generic import FormView
+from django.views.generic import FormView, ListView
 from django.http import HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
 from django.db.models import Sum
@@ -17,6 +17,12 @@ from pis_com.forms import CustomerForm,FeedBackForm
 
 from pis_retailer.models import RetailerUser
 from pis_retailer.forms import RetailerForm, RetailerUserForm
+# import render
+from django.shortcuts import render
+from pis_product.models import Product
+
+def test(request):
+    return render(request, 'home.html')
 
 
 class LoginView(FormView):
@@ -67,92 +73,58 @@ class LogoutView(RedirectView):
     def get(self, request, *args, **kwargs):
         return HttpResponseRedirect(reverse('login'))
 
-
-class RegisterView(FormView):
-    form_class = auth_forms.UserCreationForm
-    template_name = 'register.html'
-
-    def dispatch(self, request, *args, **kwargs):
-        if self.request.user.is_authenticated:
-            return HttpResponseRedirect(reverse('index'))
-
-        return super(RegisterView, self).dispatch(request, *args, **kwargs)
-
-    def form_valid(self, form):
-        # register new user in the system
-        user = form.save()
-
-        # Create Retailer
-        retailer_form_kwargs = {
-            'name': (
-                '%s %s' % (user.first_name, user.last_name) if
-                user.first_name else user.username),
-            'slug': (
-                '%s-%s' % (user.first_name, user.last_name) if
-                user.first_name else user.username)
-        }
-        retailer_form = RetailerForm(retailer_form_kwargs)
-        if retailer_form.is_valid():
-            retailer = retailer_form.save()
-
-            retailer_user_kwargs = {
-                'retailer': retailer.id,
-                'user': user.id,
-                'role_type': RetailerUser.ROLE_TYPE_LEDGER_VIEW
-            }
-
-            retailer_user_form = RetailerUserForm(retailer_user_kwargs)
-            if retailer_user_form.is_valid():
-                retailer_user_form.save()
-
-        username = form.cleaned_data.get('username')
-        raw_password = form.cleaned_data.get('password1')
-        auth_user = authenticate(username=username, password=raw_password)
-        auth_login(self.request, auth_user)
-
-        return HttpResponseRedirect(reverse('ledger:customer_ledger_list'))
-
-    def form_invalid(self, form):
-        return super(RegisterView, self).form_invalid(form)
-
-    def get_context_data(self, **kwargs):
-        context = super(RegisterView, self).get_context_data(**kwargs)
-        if self.request.POST:
-            context.update({
-                'username': self.request.POST.get('username'),
-                'password1': self.request.POST.get('password1'),
-                'password2': self.request.POST.get('password2')
-            })
-
-        return context
-
-
-class HomePageView(TemplateView):
+def home(request):
+    object_list=request.user.retailer_user.retailer.retailer_product.all().order_by('name')
+    print(object_list)
+    return render('index.html', {'object_list':object_list})
+class HomePageView(ListView):
     template_name = 'index.html'
 
     def dispatch(self, request, *args, **kwargs):
-        a = self.request
-        print(a)
-
         if not self.request.user.is_authenticated:
             return HttpResponseRedirect(reverse('login'))
-        else:
-
-            if self.request.user.retailer_user:
-                if (
-                    self.request.user.retailer_user.role_type ==
-                        self.request.user.retailer_user.ROLE_TYPE_SALESMAN
-                ):
-                    return HttpResponseRedirect(reverse('sales:invoice_list'))
-            if self.request.user.retailer_user:
-                if (
-                        self.request.user.retailer_user.role_type ==
-                        self.request.user.retailer_user.ROLE_TYPE_DATA_ENTRY_USER
-                ):
-                    return HttpResponseRedirect(reverse('product:items_list'))
 
         return super(
             HomePageView, self).dispatch(request, *args, **kwargs)
+
+    def get_queryset(self):
+        queryset = self.queryset
+        if not queryset:
+            queryset = (
+                self.request.user.retailer_user.retailer
+                    .retailer_product.all()
+            )
+
+        return queryset.order_by('name')
+
+    def get_context_data(self, **kwargs):
+        context = super(HomePageView, self).get_context_data(**kwargs)
+        print(context)
+        return context
+
+    # def dispatch(self, request, *args, **kwargs):
+    #     a = self.request
+    #     print(a)
+
+    #     if not self.request.user.is_authenticated:
+    #         return HttpResponseRedirect(reverse('login'))
+    #     else:
+
+    #         if self.request.user.retailer_user:
+    #             if (
+    #                 self.request.user.retailer_user.role_type ==
+    #                     self.request.user.retailer_user.ROLE_TYPE_SALESMAN
+    #             ):
+    #                 return HttpResponseRedirect(reverse('sales:invoice_list'))
+    #         if self.request.user.retailer_user:
+    #             if (
+    #                     self.request.user.retailer_user.role_type ==
+    #                     self.request.user.retailer_user.ROLE_TYPE_DATA_ENTRY_USER
+    #             ):
+    #                 return HttpResponseRedirect(reverse('product:items_list'))
+
+    #     return super(
+    #         HomePageView, self).dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super(HomePageView, self).get_context_data(**kwargs)

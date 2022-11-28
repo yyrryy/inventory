@@ -7,7 +7,7 @@
     <br>
     <a href="{% url 'customers' %}"><button type="button" id="back-customer" class="btn btn-primary" id="load" data-loading-text="<i class='fa fa-circle-o-notch fa-spin'></i>Processing"> Customer List</button></a>
     <br><br><br>
-    <div class="content-panel">
+    <div class="content-panel p-2">
         <h3 class="text-center">Edit Customer</h3>
         <div class="panel-body">
             <form class="form-horizontal" action="{% url 'update_customer' pk=object.id %}" method="post" autocomplete="off">

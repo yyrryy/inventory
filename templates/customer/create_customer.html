@@ -7,7 +7,7 @@
     <br>
     <a href="{% url 'customers' %}"><button id="back-customer" type="button" class="btn btn-primary" id="load" data-loading-text="<i class='fa fa-circle-o-notch fa-spin'></i>Processing">Customers List</button></a>
     <br><br><br>
-    <div class="content-panel">
+    <div class="content-panel p-2">
         <h3 class="text-center">Create New Customer</h3>
         <div class="panel-body">
             <form class="form-horizontal add-customer-form" action="{% url 'create_customer' %}" method="post" autocomplete="off">

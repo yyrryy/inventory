@@ -188,7 +188,8 @@ class CustomerLedgerDetailsView(TemplateView):
 
         ledgers = customer.customer_ledger.all()
         if ledgers:
-            ledger_total = ledgers.aggregate(Sum('amount'))
+            ledger_total = 0 if ledgers.aggregate(Sum('amount')) == None else ledgers.aggregate(Sum('amount'))
+            print(ledgers[0].amount)
             ledger_total = float(ledger_total.get('amount__sum'))
             context.update({
 

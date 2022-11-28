@@ -11,11 +11,11 @@ from pis_product.models import StockIn,StockOut
 
 class ProductAdmin(admin.ModelAdmin):
     list_display = (
-        '__unicode__', 'brand_name','UNIT_TYPE_QUANTITY', 'retailer',
+        '__unicode__', 'brand_name', 'retailer',
         'quantity', 'retail_price', 'consumer_price','bar_code'
     )
     search_fields = (
-        'name', 'brand_name', 'retailer__name','bar_code','unit_type'
+        'name', 'brand_name', 'retailer__name','bar_code',
     )
     raw_id_fields = ('retailer',)
 
@@ -119,10 +119,9 @@ class ClaimedProductAdmin(admin.ModelAdmin):
 
 class StockInAdmin(admin.ModelAdmin):
     list_display = (
-        '__unicode__', 'product', 'quantity', 'price_per_item',
-        'total_amount', 'dated_order','stock_expiry'
+        '__unicode__', 'product', 'quantity', 'dated_order'
     )
-    search_fields = ('product__name','stock_expiry','dated_order')
+    search_fields = ('product__name','dated_order')
 
 
 class StockOutAdmin(admin.ModelAdmin):

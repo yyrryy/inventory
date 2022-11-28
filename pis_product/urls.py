@@ -1,28 +1,23 @@
 from django.urls import re_path
 
 
-from pis_product.views import ProductItemList
-from pis_product.views import ProductDetailList
-from pis_product.views import AddNewProduct
-from pis_product.views import AddProductItems
-from pis_product.views import PurchasedItems
-from pis_product.views import ExtraItemsView
-from pis_product.views import ClaimedProductFormView
-from pis_product.views import ClaimedItemsListView
-from pis_product.views import StockItemList
-from pis_product.views import AddStockItems
-from pis_product.views import StockOutItems
-from pis_product.views import StockDetailView
-from pis_product.views import StockInListView
-from pis_product.views import StockOutListView
-from pis_product.views import ProductUpdateView
-from pis_product.views import StockInUpdateView
+
+# import all above in one line not commented
+from .views import (
+    ProductItemList, ProductDetailList, AddNewProduct, AddProductItems,
+    PurchasedItems, ExtraItemsView, ClaimedProductFormView,
+    ClaimedItemsListView, StockItemList, AddStockItems, StockOutItems,
+    StockDetailView, StockInListView, StockOutListView, ProductUpdateView,
+    StockInUpdateView, addbulk, product_search
+)
 
 from pis_product.logs_view import DailyStockLogs, MonthlyStockLogs
 
 
 urlpatterns = [
     re_path(r'^items/list/$', ProductItemList.as_view(), name='items_list'),
+    re_path(r'^items/addbulk/',addbulk, name='addbulk'),
+    re_path(r'^product_search',product_search, name='product_search'),
     re_path(r'^item/(?P<pk>\d+)/detail/list/$',ProductDetailList.as_view(),name='item_details'),
     re_path(r'^retailer/(?P<retailer_id>\d+)/add/$',AddNewProduct.as_view(),name='add_product'),
     re_path(r'^item/(?P<product_id>\d+)/add/$',AddProductItems.as_view(),name='add_product_items'),

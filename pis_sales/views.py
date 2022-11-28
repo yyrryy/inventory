@@ -9,7 +9,7 @@ from django.utils.decorators import method_decorator
 from django.views.generic import FormView, DeleteView, View, TemplateView, ListView
 from django.utils import timezone
 from django.urls import reverse, reverse_lazy
-from pis_product.models import Product
+from pis_product.models import Product, StockIn, PurchasedProduct, StockOut
 from pis_sales.models import SalesHistory
 from pis_product.forms import PurchasedProductForm
 from pis_sales.forms import BillingForm
@@ -18,9 +18,7 @@ from pis_com.forms import CustomerForm
 from pis_ledger.models import Ledger
 from pis_ledger.forms import LedgerForm
 from django.db import transaction
-from pis_product.models import PurchasedProduct, StockOut
 from pis_com.models import Customer
-
 
 class CreateInvoiceView(FormView):
     template_name = 'sales/create_invoice.html'
@@ -72,14 +70,10 @@ class ProductItemAPIView(View):
                 'id': product.id,
                 'name': product.name,
                 'brand_name': product.brand_name,
+                'consumer_price': product.price,
             }
 
             if product.stockin_product.exists():
-                stock_detail = product.stockin_product.all().latest('id')
-                p.update({
-                    'retail_price': stock_detail.price_per_item,
-                    'consumer_price': stock_detail.price_per_item,
-                })
 
                 all_stock = product.stockin_product.all()
                 if all_stock:
@@ -100,14 +94,6 @@ class ProductItemAPIView(View):
                 p.update({
                     'stock': all_stock - purchased_stock
                 })
-
-            else:
-                p.update(
-                    {
-                        'retail_price':0,
-                        'consumer_price':0
-                    }
-                )
 
             items.append(p)
 
@@ -206,11 +192,6 @@ class GenerateInvoiceAPIView(View):
                             'invoice': self.invoice.id,
                             'purchased_item': purchased_item.id,
                             'stock_out_quantity': float(item.get('qty')),
-                            'buying_price': (
-                                float(latest_stock_in.buying_price_item) *
-                                float(item.get('qty'))),
-                            'selling_price': (
-                                float(item.get('price')) * float(item.get('qty'))),
                             'dated': timezone.now().date()
                         }
 
@@ -232,8 +213,8 @@ class GenerateInvoiceAPIView(View):
                         extra_item = extra_item_form.save()
                         extra_items_id.append(extra_item.id)
 
-            self.invoice.purchased_items = purchased_items_id
-            self.invoice.extra_items = extra_items_id
+            self.invoice.purchased_items.set(purchased_items_id)
+            self.invoice.extra_items.set(extra_items_id)
             self.invoice.save()
 
             if self.customer or self.request.POST.get('customer_id'):
@@ -246,7 +227,7 @@ class GenerateInvoiceAPIView(View):
                         'invoice': self.invoice.id,
                         'amount': remaining_payment,
                         'description': (
-                            'Remaining Payment for Bill/Receipt No %s '
+                            'Rest a payé, facture No %s '
                             % self.invoice.receipt_no),
                         'dated': timezone.now()
                     }
@@ -273,7 +254,8 @@ class InvoiceDetailView(TemplateView):
         context.update({
             'invoice': invoice,
             'product_details': invoice.product_details,
-            'extra_items_details': invoice.extra_items
+            'extra_items_details': invoice.extra_items,
+            'title':"Details du facture "
         })
         return context
 
@@ -303,6 +285,9 @@ class InvoicesList(ListView):
 
     def get_context_data(self, **kwargs):
         context = super(InvoicesList, self).get_context_data(**kwargs)
+        context.update({
+            'title':'Liste des factures',
+        })
         return context
 
 
@@ -410,8 +395,8 @@ class UpdateInvoiceAPIView(View):
             invoice.grand_total = grand_total
             invoice.total_quantity = totalQty
             invoice.shipping = shipping
-            invoice.purchased_items = purchased_items_id
-            invoice.extra_items = extra_items_id
+            invoice.purchased_items.set(purchased_items_id)
+            invoice.extra_items.set(extra_items_id)
             invoice.paid_amount = paid_amount
             invoice.remaining_payment = remaining_payment
             invoice.retailer = self.request.user.retailer_user.retailer
@@ -493,3 +478,4 @@ class SalesDeleteView(DeleteView):
         Ledger.objects.filter(
             invoice__id=self.kwargs.get('pk')).delete()
         return self.delete(request, *args, **kwargs)
+

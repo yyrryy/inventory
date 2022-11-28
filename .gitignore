@@ -5,7 +5,16 @@
 /locale/
 /logs/*
 .venv/
+venv
+## all migrations
+migrations
 
+__pycache__
+
+migrations
+
+# Byte-compiled / optimized / DLL files
+db.sqlite3
 ### VisualStudioCode ###
 .vscode/*
 !.vscode/settings.json
@@ -30,5 +39,5 @@
 # testing related files
 .coverage
 
-/partum_inventory/settings_local.py
+/inventory/settings_local.py
 db.local_inventory

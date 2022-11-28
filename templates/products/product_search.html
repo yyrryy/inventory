@@ -1,0 +1,12 @@
+{% for item in products %}
+    <tr>
+        <td>{{ item.name}}</td>
+        <td class="#">{{ item.brand_name }}</td>
+        <td>{{ item.product_available_items|floatformat:-2 }}</td>
+    </tr>
+{% empty %}
+    <tr>
+        <td colspan="6">No products found</td>
+    </tr>
+
+{% endfor %}

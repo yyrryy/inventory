@@ -32,22 +32,17 @@
 
 	<div class="col-lg-10 col-md-10 col-sm-10">
 		<br>
-		<a href="{% url 'sales:invoice_list' %}"><button type="button" id="invoice" class="btn btn-primary" id="load" data-loading-text="<i class='fa fa-circle-o-notch fa-spin'></i>Processing">Invoice List</button></a>
+		<a href="{% url 'sales:invoice_list' %}"><button type="button" id="invoice" class="btn btn-primary fa fa-arrow-left id="load" data-loading-text="<i class='fa fa-circle-o-notch fa-spin'></i>Processing"></button></a>
 		<br><br>
-		<div class="content-panel" style="padding: 5px">
+		<div class="content-panel p-2" style="padding: 5px">
 			<div class="row">
-				<div class="col-xs-12 col-md-12">
-					<div>
-						<h2 class="text-center">Invoice</h2>
-					</div>
-				</div>
 				<div class="col-xs-12 col-md-12">
 					<hr>
 					<div class="row">
 						<div class="col-xs-6 col-md-6">
-							<div><strong>Billed To:</strong> <span style="float: right" >{{ invoice.created_at.date }}</span></div><br>
+							<div><strong>Client:</strong> <span style="float: right" >{{ invoice.created_at.date }}</span></div><br>
 							<div class="existing-customer">
-                                <span class="customererror" style="color: red; display: none">Customer Doesn't exist please add Customer</span>
+                               
                                 <input class="form-control customer" id="customer-id" placeholder="Customer" list="customer-list" value="{{ invoice.customer.customer_name }}" disabled>
 <!--                                <datalist id="customer-list">-->
 <!--                                    {% for customer in customers %}-->
@@ -57,12 +52,7 @@
 <!--                                <a class="new-customer" style="cursor: pointer;">New Customer</a><br>-->
                                 <br>
                             </div>
-                            <div id="new-customer-form" class="new-customer-form" style="display: none">
-                                <span class="already-error" style="color: red; display: none">This Customer Already exist</span>
-                                <input type="text" class="form-control customer_name" name="customer_name" placeholder="Customer Name"><br>
-                                <input type="number" class="form-control customer_phone" name="customer_phone" placeholder="Customer Phone"><br>
-                                <a class="added-customer" style="cursor: pointer;">Existing Customer</a><br><br>
-                            </div>
+                            
 						</div>
 					</div>
 				</div>
@@ -74,13 +64,18 @@
 						<table class="table table-bordered">
 							<thead>
 							<tr class="item-row">
-								<th>Item</th>
-								<th>Price</th>
-								<th>Quantity</th>
+								<th>Article</th>
+								<th>Prix</th>
+								<th>Quantité</th>
 								<th>Total</th>
 							</tr>
 							</thead>
                                 {% for item in invoice.purchased_items.all %}
+                                <tr>
+                                    <button class="btn btn-primary paid">
+                                        Payé
+                                    </button>
+                                </tr>
                                     <tr class="item-row">
                                         <td id="item-name" class="item-name">
                                             <div class="delete-btn">
@@ -109,13 +104,13 @@
 							<tr>
 								<td></td>
 								<td></td>
-								<td class="text-right"><strong>Sub Total</strong></td>
+								<td class="text-right"><strong>Total</strong></td>
 								<td><span id="subtotal">0.00</span></td>
 							</tr>
 							<tr hidden>
 								<td><strong>Total Quantity: </strong><span id="totalQty" style="color: red; font-weight: bold">{{ invoice.qty|floatformat:-2 }}</span> Units</td>
 								<td></td>
-								<td class="text-right"><strong>Discount</strong></td>
+								<td  class="text-right"><strong>Discount</strong></td>
 								<td><input class="form-control" id="discount" value="0" type="text"></td>
 							</tr>
 							<tr hidden>
@@ -133,19 +128,19 @@
                             <tr>
 								<td></td>
 								<td></td>
-								<td class="text-right"><strong>Received Amount</strong></td>
+								<td class="text-right"><strong>Mantant payé</strong></td>
 								<td><input class="form-control" id="paidAmount" value="{{ invoice.paid_amount|floatformat:-2 }}" type="text"></td>
 							</tr>
                             <tr>
 								<td></td>
 								<td></td>
-								<td class="text-right"><strong>Remaining Amount</strong></td>
+								<td class="text-right"><strong>Reste</strong></td>
 								<td><span id="remainingAmount">{{ invoice.remaining_amount|floatformat:-2 }}</span></td>
 							</tr>
 							</tbody>
 						</table>
 					</div>
-					<a id="invoice_update" href="javascript:;" title="Update Invoice" class="btn btn-primary pull-right">Update Invoice</a>
+					<a id="invoice_update" href="javascript:;" title="Update Invoice" class="btn btn-primary pull-right">Enregistrer</a>
 				</div>
 			</div>
 		</div>
@@ -156,6 +151,12 @@
 {{ block.super }}
 	<script src="{% static 'js/jquery.invoice.js' %}"></script>
 	<script>
+        $('.paid').on('click', ()=>{
+            let total=$('#grandTotal').text()
+            console.log(total)
+            // assign total to received
+            $('#paidAmount').val(total)
+        })
 		jQuery(document).ready(function(){
 			jQuery().invoice({
 				addRow : "#addRow",
@@ -283,7 +284,8 @@
                 var totalQty = total_quantity;
 
                 var customer_value = $('.customer').val();
-                var customer_id = $('#customer-list [value="' + customer_value + '"]').data('id');
+                var customer_id = {{invoice.customer.id}};
+                console.log(customer_id);
                 $.post("{% url 'sales:update_invoice_api' %}", {
                         customer_id: customer_id,
                         customer_name: customer_name,

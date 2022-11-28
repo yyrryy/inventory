@@ -1,9 +1,9 @@
 from __future__ import unicode_literals
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 
 from django.views.generic import TemplateView, UpdateView
 from django.views.generic import FormView, ListView
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.urls import reverse, reverse_lazy
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404
@@ -12,6 +12,42 @@ from pis_product.models import PurchasedProduct, ExtraItems, ClaimedProduct,Stoc
 from pis_product.forms import (
     ProductForm, ProductDetailsForm, ClaimedProductForm,StockDetailsForm,StockOutForm)
 from django.utils import timezone
+import pandas as pd
+from django.views.decorators.csrf import csrf_exempt
+from pis_retailer.models import Retailer
+
+
+@csrf_exempt
+def product_search(request):
+    name=request.POST.get('name')
+    products= request.user.retailer_user.retailer.retailer_product.all().filter(name__icontains=name)
+    print(products)
+    return JsonResponse({
+        'data': render(request, 'products/product_search.html', {'products': products}).content.decode('utf-8')
+    })
+
+@csrf_exempt
+def addbulk(request):
+    # get the uploaded file
+
+    myfile=request.FILES[next(iter(request.FILES))]
+    retailer=Retailer.objects.get(id=request.user.retailer_user.retailer.id)
+    
+    df = pd.read_excel(myfile)
+    df = df.fillna('-')
+    for d in df.itertuples():
+        product = Product.objects.create(
+            retailer=retailer,
+            name=d.name,
+            brand_name=d.brand,
+            price=d.pr,
+        )
+        StockIn.objects.create(
+            product=product,
+            quantity=d.qty,
+        )
+    #return a json response
+    return redirect('product:stock_items_list')
 
 
 class ProductItemList(TemplateView):
@@ -19,7 +55,7 @@ class ProductItemList(TemplateView):
 
     def dispatch(self, request, *args, **kwargs):
         if not self.request.user.is_authenticated:
-            return HttpResponseRedirect(reverse('login'))
+            return 
 
         return super(
             ProductItemList, self).dispatch(request, *args, **kwargs)
@@ -257,7 +293,7 @@ class ClaimedItemsListView(TemplateView):
 class StockItemList(ListView):
     template_name = 'products/stock_list.html'
     model = Product
-    paginate_by = 150
+    paginate_by = 50
     ordering = 'name'
 
     def dispatch(self, request, *args, **kwargs):
@@ -284,7 +320,8 @@ class StockItemList(ListView):
     def get_context_data(self, **kwargs):
         context = super(StockItemList, self).get_context_data(**kwargs)
         context.update({
-            'search_value_name': self.request.GET.get('name')
+            'search_value_name': self.request.GET.get('name'),
+            'title':"Liste de produits"
         })
         return context
 
@@ -319,7 +356,8 @@ class AddStockItems(FormView):
             raise Http404('Product not found with concerned User')
 
         context.update({
-            'product': product
+            'product': product,
+            'title':'Ajouter Entrée'
         })
         return context
 
@@ -353,7 +391,8 @@ class StockOutItems(FormView):
             raise Http404('Product not found with concerned User')
 
         context.update({
-            'product': product
+            'product': product,
+            'title':"Sorties"
         })
         return context
 
@@ -399,7 +438,8 @@ class StockInListView(ListView):
     def get_context_data(self, **kwargs):
         context = super(StockInListView, self).get_context_data(**kwargs)
         context.update({
-            'product': Product.objects.get(id=self.kwargs.get('product_id'))
+            'product': Product.objects.get(id=self.kwargs.get('product_id')),
+            'title':'Entrée'
         })
         return context
 
