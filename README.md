@@ -34,7 +34,7 @@ Using Django Framework and JQuery on the Frontend
 
 2. Create a Fork and Clone Project by using the following command
 
-> git clone git@github.com:janzaheer/partum_inventory.git
+> git clone git@github.com:janzaheer/inventory.git
 
 3. Create local settings file and add the local database configuration, You can use any database SQLite, Mysql or Postgress SQL etc. Following is the configuration code for SQLite database.
 ```
@@ -76,3 +76,4 @@ Now you can access the application in your browser by URL `http://localhost:8000
 As an open source project with a strong focus on the user community, we welcome contributions as GitHub pull requests. See our Contributor Guides to get going. Discussions and RFCs for features happen on the design discussions section of our Forum.
 
 
+"# inventory" 
